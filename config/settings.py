@@ -34,7 +34,7 @@ ALLOWED_HOSTS = [
     'ExpenseTracker.onrender.com'
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'ExpenseTracker.onrender.com'
+    'https://httExpenseTracker.onrender.com'
 ]
 
 # Application definition
