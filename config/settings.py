@@ -31,10 +31,10 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     "*",
-    'ExpenseTracker.onrender.com'
+    "expense-tracker-k33j.onrender.com"
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'https://httExpenseTracker.onrender.com'
+    "https://expense-tracker-k33j.onrender.com"
 ]
 
 # Application definition
