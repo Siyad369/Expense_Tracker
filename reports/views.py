@@ -12,12 +12,12 @@ from finance.models import Debt, Transaction
 
 class SummaryView(APIView):
     def get(self, request):
-        income = Transaction.objects.filter(type='income').aggregate(total=Sum('amount'))['total'] or 0
-        expense = Transaction.objects.filter(type='expense').aggregate(total=Sum('amount'))['total'] or 0
+        income = Transaction.objects.filter(user=request.user, type='income').aggregate(total=Sum('amount'))['total'] or 0
+        expense = Transaction.objects.filter(user=request.user,type='expense').aggregate(total=Sum('amount'))['total'] or 0
 
         balance = income - expense
 
-        pending_debt = Debt.objects.filter(status='pending').aggregate(total=Sum('amount'))['total'] or 0
+        pending_debt = Debt.objects.filter(user=request.user, status='pending').aggregate(total=Sum('amount'))['total'] or 0
 
         return Response({
             "total_income": income,
@@ -31,7 +31,7 @@ class ReportView(APIView):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
 
-        transactions = Transaction.objects.all()
+        transactions = Transaction.objects.filter(user=request.user)
 
         if start_date and end_date:
             transactions = transactions.filter(date__range=[start_date, end_date])
@@ -49,7 +49,7 @@ class ReportView(APIView):
     
 class CalendarView(APIView):
     def get(self, request):
-        transactions = Transaction.objects.all().order_by('date')
+        transactions = Transaction.objects.filter(user=request.user).order_by('date')
 
         data = defaultdict(list)
 
@@ -67,6 +67,7 @@ class CategoryAnalyticsView(APIView):
     def get(self, request):
         data = (
             Transaction.objects
+            .filter(user=request.user)
             .values('category__name', 'type')
             .annotate(total=Sum('amount'))
         )

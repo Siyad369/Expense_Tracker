@@ -6,44 +6,96 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 # Category APIs
 class CategoryListCreateView(generics.ListCreateAPIView):
-    queryset = Category.objects.all()
+
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Category.objects.filter(
+            user=self.request.user
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 # Transaction APIs
-class TransactionListCreateView(generics.ListCreateAPIView):
-    queryset = Transaction.objects.all().order_by('-date')
-    serializer_class = TransactionSerializer
+class TransactionListCreateView(
+    generics.ListCreateAPIView
+):
 
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter
+    ]
+
     filterset_fields = ['type', 'category', 'date']
     search_fields = ['note']
 
-class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Transaction.objects.all()
+    def get_queryset(self):
+
+        return Transaction.objects.filter(
+            user=self.request.user
+        ).order_by('-date')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class TransactionDetailView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+
     serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaction.objects.filter(
+            user=self.request.user
+        )
 
 
 # Debt APIs
-class DebtListCreateView(generics.ListCreateAPIView):
-    queryset = Debt.objects.all()
+class DebtListCreateView(
+    generics.ListCreateAPIView
+):
+
     serializer_class = DebtSerializer
-    
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
+
         status = self.request.GET.get('status')
-        qs = Debt.objects.all()
+
+        qs = Debt.objects.filter(
+            user=self.request.user
+        )
 
         if status:
             qs = qs.filter(status=status)
 
         return qs.order_by('-created_at')
 
-class DebtDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Debt.objects.all()
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class DebtDetailView(
+    generics.RetrieveUpdateDestroyAPIView
+):
+
     serializer_class = DebtSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Debt.objects.filter(
+            user=self.request.user
+        )
 
 class MarkDebtPaidView(APIView):
     def patch(self, request, pk):
