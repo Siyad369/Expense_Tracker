@@ -100,7 +100,10 @@ class DebtDetailView(
 class MarkDebtPaidView(APIView):
     def patch(self, request, pk):
         try:
-            debt = Debt.objects.get(pk=pk)
+            debt = Debt.objects.get(
+                pk=pk,
+                user=request.user
+            )
             debt.status = 'paid'
             debt.save()
             return Response({"message": "Debt marked as paid"})
