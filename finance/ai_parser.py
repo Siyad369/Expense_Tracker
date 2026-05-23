@@ -52,6 +52,11 @@ CATEGORY_KEYWORDS = {
         "shoe",
         "shopping",
     ],
+
+    "Catering": [
+        "catering", 
+        "event",
+    ],
 }
 
 
