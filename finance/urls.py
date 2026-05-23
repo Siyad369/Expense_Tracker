@@ -10,6 +10,6 @@ urlpatterns = [
     path('debts/', DebtListCreateView.as_view()),
     path('debts/<int:pk>/', DebtDetailView.as_view()),
     path('debts/<int:pk>/mark-paid/', MarkDebtPaidView.as_view()),
-
+    path('ai/parse-transaction/', AIParseTransactionView.as_view()),
 
 ]

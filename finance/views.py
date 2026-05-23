@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from .ai_parser import parse_transaction_text
+
 # Category APIs
 class CategoryListCreateView(generics.ListCreateAPIView):
 
@@ -109,3 +111,25 @@ class MarkDebtPaidView(APIView):
             return Response({"message": "Debt marked as paid"})
         except Debt.DoesNotExist:
             return Response({"error": "Not found"}, status=404)
+
+
+class AIParseTransactionView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        text = request.data.get("text")
+
+        if not text:
+            return Response(
+                {"error": "Text required"},
+                status=400
+            )
+
+        parsed = parse_transaction_text(
+            request.user,
+            text,
+        )
+
+        return Response(parsed)
