@@ -82,3 +82,112 @@ class CategoryAnalyticsView(APIView):
             })
 
         return Response(result)
+
+
+from datetime import date, timedelta
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from finance.models import Transaction
+
+
+class AnalyticsSummaryView(APIView):
+
+    def get(self, request):
+
+        user = request.user
+
+        today = date.today()
+
+        first_day_month = today.replace(day=1)
+
+        week_start = today - timedelta(days=today.weekday())
+
+        transactions = Transaction.objects.filter(
+            user=user
+        )
+
+        month_transactions = transactions.filter(
+            date__gte=first_day_month
+        )
+
+        week_transactions = transactions.filter(
+            date__gte=week_start
+        )
+
+        monthly_income = (
+            month_transactions
+            .filter(type='income')
+            .aggregate(total=Sum('amount'))['total']
+            or 0
+        )
+
+        monthly_expense = (
+            month_transactions
+            .filter(type='expense')
+            .aggregate(total=Sum('amount'))['total']
+            or 0
+        )
+
+        weekly_income = (
+            week_transactions
+            .filter(type='income')
+            .aggregate(total=Sum('amount'))['total']
+            or 0
+        )
+
+        weekly_expense = (
+            week_transactions
+            .filter(type='expense')
+            .aggregate(total=Sum('amount'))['total']
+            or 0
+        )
+
+        highest_expense_category = (
+            transactions
+            .filter(type='expense')
+            .values('category__name')
+            .annotate(total=Sum('amount'))
+            .order_by('-total')
+            .first()
+        )
+
+        highest_income_category = (
+            transactions
+            .filter(type='income')
+            .values('category__name')
+            .annotate(total=Sum('amount'))
+            .order_by('-total')
+            .first()
+        )
+
+        most_expensive_day = (
+            transactions
+            .filter(type='expense')
+            .values('date')
+            .annotate(total=Sum('amount'))
+            .order_by('-total')
+            .first()
+        )
+
+        return Response({
+
+            "monthly_income": monthly_income,
+            "monthly_expense": monthly_expense,
+
+            "weekly_income": weekly_income,
+            "weekly_expense": weekly_expense,
+
+            "highest_expense_category":
+                highest_expense_category,
+
+            "highest_income_category":
+                highest_income_category,
+
+            "most_expensive_day":
+                most_expensive_day,
+
+            "total_transactions":
+                transactions.count()
+        })
