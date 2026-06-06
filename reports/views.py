@@ -216,3 +216,67 @@ class AnalyticsSummaryView(APIView):
             "total_transactions":
                 transactions.count()
         })
+    
+
+from django.db.models.functions import ExtractMonth
+from django.db.models import Sum
+class MonthlyTrendView(APIView):
+
+    def get(self, request):
+
+        data = (
+            Transaction.objects
+            .filter(user=request.user)
+            .annotate(month=ExtractMonth('date'))
+            .values('month', 'type')
+            .annotate(total=Sum('amount'))
+            .order_by('month')
+        )
+
+        result = {}
+
+        for row in data:
+
+            month = row['month']
+
+            if month not in result:
+                result[month] = {
+                    "month": month,
+                    "income": 0,
+                    "expense": 0
+                }
+
+            result[month][row['type']] = float(row['total'])
+
+        return Response(list(result.values()))
+    
+
+class ExpenseCategoryBreakdownView(APIView):
+
+    def get(self, request):
+
+        data = (
+            Transaction.objects
+            .filter(
+                user=request.user,
+                type='expense'
+            )
+            .values('category__name')
+            .annotate(total=Sum('amount'))
+            .order_by('-total')
+        )
+
+        result = []
+
+        for item in data:
+
+            result.append({
+                "category":
+                    item["category__name"]
+                    or "Other",
+
+                "total":
+                    float(item["total"])
+            })
+
+        return Response(result)

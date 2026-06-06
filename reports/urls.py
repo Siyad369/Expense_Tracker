@@ -13,5 +13,15 @@ urlpatterns = [
     path(
     'analytics/summary/',
     AnalyticsSummaryView.as_view()
-),
+    ),
+
+    path(
+        'analytics/monthly-trend/',
+        MonthlyTrendView.as_view()
+    ),
+
+    path(
+        'analytics/category-breakdown/',
+        ExpenseCategoryBreakdownView.as_view()
+    ),
 ]
