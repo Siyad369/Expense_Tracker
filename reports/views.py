@@ -91,7 +91,8 @@ from rest_framework.response import Response
 
 from finance.models import Transaction
 
-
+from datetime import date, timedelta
+import calendar
 class AnalyticsSummaryView(APIView):
 
     def get(self, request):
@@ -100,7 +101,25 @@ class AnalyticsSummaryView(APIView):
 
         today = date.today()
 
-        first_day_month = today.replace(day=1)
+        month = int(
+            request.GET.get("month", today.month)
+        )
+
+        year = int(
+            request.GET.get("year", today.year)
+        )
+
+        first_day_month = date(
+            year,
+            month,
+            1
+        )
+
+        last_day_month = date(
+            year,
+            month,
+            calendar.monthrange(year, month)[1]
+        )
 
         week_start = today - timedelta(days=today.weekday())
 
@@ -109,7 +128,10 @@ class AnalyticsSummaryView(APIView):
         )
 
         month_transactions = transactions.filter(
-            date__gte=first_day_month
+            date__range=[
+                first_day_month,
+                last_day_month
+            ]
         )
 
         week_transactions = transactions.filter(
@@ -172,6 +194,9 @@ class AnalyticsSummaryView(APIView):
         )
 
         return Response({
+
+            "month": month,
+            "year": year,
 
             "monthly_income": monthly_income,
             "monthly_expense": monthly_expense,
